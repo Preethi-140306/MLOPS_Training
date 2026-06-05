@@ -1,1 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StreetWatch AI — Stray Animal Detector</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── HEADER ── -->
+  <header>
+    <div class="header-left">
+      <span class="logo">🐕</span>
+      <div>
+        <h1>StreetWatch AI</h1>
+        <p>Stray Animal Detection System</p>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Connecting...</span>
+    </div>
+  </header>
+
+  <!-- ── NAVIGATION TABS ── -->
+  <nav>
+    <button class="tab-btn active" onclick="showTab('dashboard')">📊 Dashboard</button>
+    <button class="tab-btn"        onclick="showTab('image')">🖼️ Image</button>
+    <button class="tab-btn"        onclick="showTab('video')">🎬 Video</button>
+    <button class="tab-btn"        onclick="showTab('live')">📡 Live</button>
+    <button class="tab-btn"        onclick="showTab('alerts')" id="alertsTab">🔔 Alerts</button>
+  </nav>
+
+  <!-- ══════════════════════════════════════════
+       TAB 1 — DASHBOARD
+  ══════════════════════════════════════════ -->
+  <div class="tab-content active" id="tab-dashboard">
+
+    <!-- Stat cards -->
+    <div class="cards-row">
+      <div class="card">
+        <div class="card-icon">🔍</div>
+        <div class="card-info">
+          <span class="card-value" id="totalDetections">0</span>
+          <span class="card-label">Total Detections</span>
+        </div>
+      </div>
+      <div class="card dog">
+        <div class="card-icon">🐕</div>
+        <div class="card-info">
+          <span class="card-value" id="totalDogs">0</span>
+          <span class="card-label">Dogs Detected</span>
+        </div>
+      </div>
+      <div class="card cattle">
+        <div class="card-icon">🐄</div>
+        <div class="card-info">
+          <span class="card-value" id="totalCattle">0</span>
+          <span class="card-label">Cattle Detected</span>
+        </div>
+      </div>
+      <div class="card alert-card">
+        <div class="card-icon">🚨</div>
+        <div class="card-info">
+          <span class="card-value" id="totalAlerts">0</span>
+          <span class="card-label">Active Alerts</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick demo -->
+    <div class="section-box">
+      <div class="section-header">
+        <h2>Quick Test</h2>
+        <button class="btn-primary" onclick="runDemo()">▶ Run Demo</button>
+      </div>
+      <div id="demoResult" class="demo-result hidden">
+        <img id="demoImage" src="" alt="Demo output" />
+        <div class="demo-counts">
+          <div class="big-number" id="demoTotal">0</div>
+          <div class="big-label">Animals Found</div>
+          <div class="count-row">
+            <span class="dog-badge" id="demoDogs">🐕 Dogs: 0</span>
+            <span class="cattle-badge" id="demoCattle">🐄 Cattle: 0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- History list -->
+    <div class="section-box">
+      <h2>Recent Detections</h2>
+      <div id="historyList" class="history-list">
+        <p class="empty-msg">No detections yet. Upload an image or video.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       TAB 2 — IMAGE DETECTION
+  ══════════════════════════════════════════ -->
+  <div class="tab-content" id="tab-image">
+    <div class="section-box">
+      <h2>Image Detection</h2>
+      <p class="subtitle">Upload a CCTV image to detect stray dogs and cattle</p>
+
+      <!-- Upload area -->
+      <div class="upload-zone" id="imageDropZone"
+           onclick="document.getElementById('imageInput').click()"
+           ondragover="event.preventDefault(); this.classList.add('dragging')"
+           ondragleave="this.classList.remove('dragging')"
+           ondrop="handleImageDrop(event)">
+        <input type="file" id="imageInput" accept="image/*" hidden
+               onchange="handleImageFile(this.files[0])" />
+        <div class="upload-icon">📷</div>
+        <p class="upload-text">Drop image here or click to browse</p>
+        <p class="upload-sub">JPG, PNG supported</p>
+      </div>
+
+      <!-- Loading spinner -->
+      <div id="imageLoading" class="loading hidden">
+        <div class="spinner"></div>
+        <p>Analyzing image...</p>
+      </div>
+
+      <!-- Results -->
+      <div id="imageResults" class="result-box hidden">
+        <div class="result-grid">
+          <div class="result-image-wrap">
+            <img id="resultImage" src="" alt="Detection result" />
+            <span class="result-label">AI Annotated</span>
+          </div>
+          <div class="result-stats">
+            <div class="big-number" id="imgTotal">0</div>
+            <div class="big-label">Animals Detected</div>
+            <div class="stat-row">
+              <div class="stat-item dog-stat">
+                <span class="stat-icon">🐕</span>
+                <span class="stat-name">Dogs</span>
+                <span class="stat-count" id="imgDogs">0</span>
+              </div>
+              <div class="stat-item cattle-stat">
+                <span class="stat-icon">🐄</span>
+                <span class="stat-name">Cattle</span>
+                <span class="stat-count" id="imgCattle">0</span>
+              </div>
+            </div>
+            <div class="meta-box">
+              <div class="meta-row">
+                <span>Speed</span>
+                <span id="imgSpeed">-</span>
+              </div>
+              <div class="meta-row">
+                <span>Time</span>
+                <span id="imgTime">-</span>
+              </div>
+            </div>
+            <!-- Detection list -->
+            <div id="imgDetectionList" class="detection-list"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       TAB 3 — VIDEO DETECTION
+  ══════════════════════════════════════════ -->
+  <div class="tab-content" id="tab-video">
+    <div class="section-box">
+      <h2>Video Detection</h2>
+      <p class="subtitle">Upload CCTV footage to analyse stray animals across all frames</p>
+
+      <div class="upload-zone" id="videoDropZone"
+           onclick="document.getElementById('videoInput').click()"
+           ondragover="event.preventDefault(); this.classList.add('dragging')"
+           ondragleave="this.classList.remove('dragging')"
+           ondrop="handleVideoDrop(event)">
+        <input type="file" id="videoInput" accept="video/*" hidden
+               onchange="handleVideoFile(this.files[0])" />
+        <div class="upload-icon">🎬</div>
+        <p class="upload-text" id="videoFileName">Drop video here or click to browse</p>
+        <p class="upload-sub">MP4, AVI, MOV supported</p>
+      </div>
+
+      <div id="videoLoading" class="loading hidden">
+        <div class="spinner"></div>
+        <p id="videoLoadingText">Processing video...</p>
+        <div class="progress-bar"><div class="progress-fill" id="videoProgress"></div></div>
+      </div>
+
+      <div id="videoResults" class="result-box hidden">
+        <div class="video-summary">
+          <div class="vscard">
+            <div class="vscard-val" id="vidTotal">0</div>
+            <div class="vscard-label">Total Animals</div>
+          </div>
+          <div class="vscard dog">
+            <div class="vscard-val" id="vidDogs">0</div>
+            <div class="vscard-label">Dogs</div>
+          </div>
+          <div class="vscard cattle">
+            <div class="vscard-val" id="vidCattle">0</div>
+            <div class="vscard-label">Cattle</div>
+          </div>
+          <div class="vscard">
+            <div class="vscard-val" id="vidFrames">0</div>
+            <div class="vscard-label">Frames Checked</div>
+          </div>
+        </div>
+
+        <!-- Timeline bars -->
+        <div class="section-box" style="margin-top:20px">
+          <h3>Activity Timeline</h3>
+          <div class="timeline" id="videoTimeline"></div>
+          <p class="upload-sub">Each bar = one frame sample · Height = animal count</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       TAB 4 — LIVE STREAM
+  ══════════════════════════════════════════ -->
+  <div class="tab-content" id="tab-live">
+    <div class="section-box">
+      <h2>Live Detection</h2>
+      <p class="subtitle">Use your webcam to detect animals in real time</p>
+
+      <div class="live-feeds">
+        <div class="feed-box">
+          <div class="feed-label">
+            <span class="feed-dot" id="camDot"></span>
+            Camera Feed
+          </div>
+          <video id="webcamVideo" autoplay muted playsinline></video>
+          <canvas id="webcamCanvas" width="640" height="480" style="display:none"></canvas>
+        </div>
+        <div class="feed-box">
+          <div class="feed-label">
+            <span class="feed-dot" id="aiDot"></span>
+            AI Annotated
+          </div>
+          <img id="liveAnnotated" src="" alt="Annotated" class="feed-img hidden" />
+          <div class="feed-placeholder" id="livePlaceholder">
+            <span>🤖</span>
+            <p>Start camera to see detections</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="live-controls">
+        <button class="btn-primary" id="startBtn" onclick="startLive()">📡 Start Camera</button>
+        <button class="btn-danger hidden" id="stopBtn" onclick="stopLive()">⏹ Stop</button>
+        <span class="ws-status" id="wsStatus">Not connected</span>
+      </div>
+
+      <div id="liveStats" class="live-stats hidden">
+        <div class="live-count">
+          <span id="liveDogCount">0</span>
+          <label>Dogs</label>
+        </div>
+        <div class="live-divider"></div>
+        <div class="live-count">
+          <span id="liveCattleCount">0</span>
+          <label>Cattle</label>
+        </div>
+        <div class="live-divider"></div>
+        <div class="live-count">
+          <span id="liveFps">0</span>
+          <label>FPS</label>
+        </div>
+        <div class="live-divider"></div>
+        <div class="live-count">
+          <span id="liveFrame">0</span>
+          <label>Frame</label>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       TAB 5 — ALERTS
+  ══════════════════════════════════════════ -->
+  <div class="tab-content" id="tab-alerts">
+    <div class="section-box">
+      <h2>Alerts</h2>
+      <p class="subtitle">Triggered when stray animal count exceeds threshold</p>
+      <div id="alertsList">
+        <div class="empty-alerts">
+          <div class="empty-icon">✅</div>
+          <h3>No Active Alerts</h3>
+          <p>Alerts appear here when animal density is high</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
 
